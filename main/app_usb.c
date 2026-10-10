@@ -17,6 +17,7 @@
 #include "device/usbd.h"
 #include "app_lcd.h"
 #include "app_usb.h"
+#include "lcd_amoled.h"
 
 static const char *TAG = "app_usb";
 static usb_phy_handle_t s_phy_hdl;
@@ -96,12 +97,14 @@ esp_err_t app_usb_init(void)
 // Invoked when device is mounted
 void tud_mount_cb(void)
 {
+    lcd_amoled_fill(0x0000); /* 黑屏 */
     ESP_LOGI(TAG, "USB Mount");
 }
 
 // Invoked when device is unmounted
 void tud_umount_cb(void)
 {
+    lcd_amoled_fill(0x0000); /* 黑屏 */
     ESP_LOGI(TAG, "USB Un-Mount");
 }
 
@@ -110,6 +113,7 @@ void tud_umount_cb(void)
 // Within 7ms, device must draw an average of current less than 2.5 mA from bus
 void tud_suspend_cb(bool remote_wakeup_en)
 {
+    lcd_amoled_fill(0x0000); /* 黑屏 */
     (void) remote_wakeup_en;
     ESP_LOGI(TAG, "USB Suspend");
 }
@@ -117,5 +121,6 @@ void tud_suspend_cb(bool remote_wakeup_en)
 // Invoked when usb bus is resumed
 void tud_resume_cb(void)
 {
+    lcd_amoled_fill(0x0000); /* 黑屏 */
     ESP_LOGI(TAG, "USB Resume");
 }

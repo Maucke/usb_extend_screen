@@ -113,6 +113,7 @@ esp_err_t lcd_amoled_init(void)
     esp_lcd_panel_disp_on_off(s_panel, true);
 
     lcd_set_brightness(100);
+    lcd_amoled_fill(0x0000); /* 黑屏 */
 
     s_line_buf = heap_caps_malloc(DISPLAY_WIDTH * sizeof(uint16_t), MALLOC_CAP_DMA);
     ESP_RETURN_ON_FALSE(s_line_buf != NULL, ESP_ERR_NO_MEM, TAG, "line buffer");
