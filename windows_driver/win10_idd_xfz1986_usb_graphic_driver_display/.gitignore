@@ -1,0 +1,6 @@
+﻿################################################################################
+# 此 .gitignore 文件已由 Microsoft(R) Visual Studio 自动创建。
+################################################################################
+
+/win10_idd_xfz1986_usb_graphic_driver/.vs/idd_xfz1986_usb_graphic
+/win10_idd_xfz1986_usb_graphic_driver/idd_xfz1986_usb_graphic/x64/Debug

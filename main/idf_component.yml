@@ -1,0 +1,9 @@
+version: 0.3.0
+targets:
+  - esp32s3
+dependencies:
+  idf: ">=5.4.0"
+  espressif/tinyusb: "*"
+  maucke/esp_lcd_sh8601: "1.0.4"
+  espressif/esp_new_jpeg: "^1.0.1"
+  espressif/usb_device_uac: "*"

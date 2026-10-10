@@ -1,0 +1,20 @@
+﻿  Building 'xfz1986_usb_graphic' with toolset 'WindowsUserModeDriver10.0' and the 'Universal' target platform.
+  Stamping x64\Release\xfz1986_usb_graphic.inf
+  Stamping [Version] section with DriverVer=10/10/2026,1.2.25.2
+D:\Documents\temp\usb_extend_screen\windows_driver\win10_idd_xfz1986_usb_graphic_driver_display\win10_idd_xfz1986_usb_graphic_driver\idd_xfz1986_usb_graphic\xfz1986_usb_graphic.inf(29-29): warning 2084: Service binary 'C:\WINDOWS\System32\drivers\WUDFRd.sys' should reference a CopyFiles destination file.
+  idd_xfz1986_usb_graphic.vcxproj -> D:\Documents\temp\usb_extend_screen\windows_driver\win10_idd_xfz1986_usb_graphic_driver_display\win10_idd_xfz1986_usb_graphic_driver\x64\Release\xfz1986_usb_graphic.dll
+  Driver is 'Universal'.
+  .........................
+  Signability test complete.
+  
+  Errors:
+  None
+  
+  Warnings:
+  None
+  
+  Catalog generation complete.
+  D:\Documents\temp\usb_extend_screen\windows_driver\win10_idd_xfz1986_usb_graphic_driver_display\win10_idd_xfz1986_usb_graphic_driver\x64\Release\xfz1986_usb_graphic\xfz1986_usb_graphic.cat
+  Done Adding Additional Store
+  Successfully signed: D:\Documents\temp\usb_extend_screen\windows_driver\win10_idd_xfz1986_usb_graphic_driver_display\win10_idd_xfz1986_usb_graphic_driver\x64\Release\xfz1986_usb_graphic\xfz1986_usb_graphic.cat
+  

@@ -1,0 +1,2 @@
+# MSBuild per-user settings (test certificates, debugger args) are machine-specific
+*.vcxproj.user

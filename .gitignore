@@ -1,0 +1,8 @@
+build/
+sdkconfig
+sdkconfig.old
+managed_components/
+.devcontainer/
+dependencies.lock
+.vscode/
+windows_driver/win10_idd_xfz1986_usb_graphic_driver_display/win10_idd_xfz1986_usb_graphic_driver/idd_xfz1986_usb_graphic/x64/
