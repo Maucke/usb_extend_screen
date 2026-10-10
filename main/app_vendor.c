@@ -155,11 +155,15 @@ void tud_vendor_rx_cb(uint8_t itf, uint8_t const* buffer, uint16_t bufsize)
 
                     static int fps_count = 0;
                     static int64_t start_time = 0;
+                    int64_t now = esp_timer_get_time();
+                    if (start_time == 0) {
+                        start_time = now;
+                    }
                     fps_count++;
-                    if (fps_count == 50) {
-                        int64_t end_time = esp_timer_get_time();
-                        ESP_LOGI(TAG, "Input fps: %f", 1000000.0 / ((end_time - start_time) / 50.0));
-                        start_time = end_time;
+                    if ((now - start_time) >= 1000000) {
+                        ESP_LOGI(TAG, "Input fps: %f",
+                                 (double)fps_count * 1000000.0 / (double)(now - start_time));
+                        start_time = now;
                         fps_count = 0;
                     }
 

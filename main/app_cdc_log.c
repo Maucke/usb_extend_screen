@@ -34,7 +34,7 @@ static int app_cdc_log_vprintf(const char *fmt, va_list args)
         int len = vsnprintf(s_line, sizeof(s_line), fmt, args_copy);
         va_end(args_copy);
 
-        if ((len > 0) && tud_cdc_connected()) {
+        if ((len > 0)) {
             size_t n = ((size_t)len < sizeof(s_line)) ? (size_t)len : (sizeof(s_line) - 1);
             size_t out_len = 0;
 
