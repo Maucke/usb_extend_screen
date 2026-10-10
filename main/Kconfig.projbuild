@@ -7,8 +7,10 @@ menu "Example Configuration"
             default 0x303A
         config TUSB_PID
             hex "USB Device PID"
-            default 0x2986 if HID_TOUCH_ENABLE || UAC_AUDIO_ENABLE
-            default 0x2987 if !HID_TOUCH_ENABLE && !UAC_AUDIO_ENABLE
+            default 0x2986
+            help
+                CDC 日志口让本设备始终是复合设备（Vendor + CDC 两个功能），
+                IDD 驱动要求复合设备用 0x2986，只有纯显示设备才用 0x2987。
         config TUSB_MANUFACTURER
             string "USB Device Manufacture"
             default "Espressif"

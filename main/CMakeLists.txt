@@ -1,4 +1,4 @@
-set(srcs "app_hid.c" "app_lcd.c" "app_usb.c" "app_vendor.c"
+set(srcs "app_cdc_log.c" "app_hid.c" "app_lcd.c" "app_usb.c" "app_vendor.c"
          "lcd_amoled.c" "usb_extend_screen.c" "usb_frame.c")
 
 if(CONFIG_HID_TOUCH_ENABLE)

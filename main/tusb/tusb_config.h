@@ -124,6 +124,12 @@ extern "C" {
 #define CFG_TUD_VENDOR_EPSIZE        VENDOR_BUF_SIZE
 #endif
 
+/*!< CDC Class —— 日志串口，和 Vendor（显示协议）组成复合设备 */
+#define CFG_TUD_CDC                  1
+#define CFG_TUD_CDC_RX_BUFSIZE       (VENDOR_BUF_SIZE * 4)
+#define CFG_TUD_CDC_TX_BUFSIZE       (VENDOR_BUF_SIZE * 16)
+#define CFG_TUD_CDC_EP_BUFSIZE       VENDOR_BUF_SIZE
+
 #if CONFIG_HID_TOUCH_ENABLE
 /*!< HID Class */
 #define CFG_TUD_HID                  1

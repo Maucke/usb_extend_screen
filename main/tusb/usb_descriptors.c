@@ -101,8 +101,13 @@ enum {
     STR_INDEX_HID,
 #endif
 #if CONFIG_UAC_AUDIO_ENABLE
+    /* TUD_AUDIO_DESCRIPTOR 内部会用到 _stridx、_stridx+1、_stridx+2 三个字符串，
+       这里把三个槽位都列出来，免得后面的 CDC 串位 */
     STR_INDEX_AUDIO,
+    STR_INDEX_AUDIO_SPEAKER,
+    STR_INDEX_AUDIO_MIC,
 #endif
+    STR_INDEX_CDC,
 };
 
 //--------------------------------------------------------------------+
@@ -116,7 +121,8 @@ enum {
 #endif
 
 #define CONFIG_TOTAL_LEN    (TUD_CONFIG_DESC_LEN + TUD_HID_DESC_LEN * CFG_TUD_HID + \
-                             TUD_VENDOR_DESC_LEN * CFG_TUD_VENDOR + UAC_DESC_LEN)
+                             TUD_VENDOR_DESC_LEN * CFG_TUD_VENDOR + \
+                             TUD_CDC_DESC_LEN * CFG_TUD_CDC + UAC_DESC_LEN)
 
 uint8_t const desc_fs_configuration[] = {
     // Config number, interface count, string index, total length, attribute, power in mA
@@ -124,6 +130,11 @@ uint8_t const desc_fs_configuration[] = {
     // Interface number, string index, EP Out & IN address, EP size
 #if CFG_TUD_VENDOR
     TUD_VENDOR_DESCRIPTOR(ITF_NUM_VENDOR, STR_INDEX_VENDOR, EPNUM_VENDOR, 0x80 | EPNUM_VENDOR, CFG_TUD_VENDOR_EPSIZE),
+#endif
+#if CFG_TUD_CDC
+    // Interface number, string index, EP notification address & size, EP data address (out, in) & size
+    TUD_CDC_DESCRIPTOR(ITF_NUM_CDC, STR_INDEX_CDC, 0x80 | EPNUM_CDC_NOTIF, 8,
+                       EPNUM_CDC_OUT, 0x80 | EPNUM_CDC_IN, CFG_TUD_CDC_EP_BUFSIZE),
 #endif
 #if CFG_TUD_HID
     // Interface number, string index, protocol, report descriptor len, EP In address, size & polling interval
@@ -167,6 +178,7 @@ char const *string_desc_arr [] = {
     "speaker",                        // 7: UAC Interface
     "mic",                            // 8: UAC Interface
 #endif
+    "esp cdc",                        // CDC Interface (log)
 };
 
 static uint16_t _desc_str[64];

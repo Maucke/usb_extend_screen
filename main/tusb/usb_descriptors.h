@@ -39,6 +39,10 @@ enum {
 
 enum {
     ITF_NUM_VENDOR = 0,
+#if CFG_TUD_CDC
+    ITF_NUM_CDC,
+    ITF_NUM_CDC_DATA,
+#endif
 #if CFG_TUD_HID
     ITF_NUM_HID,
 #endif
@@ -57,6 +61,11 @@ enum {
 enum {
     EPNUM_DEFAULT = 0,
     EPNUM_VENDOR,
+#if CFG_TUD_CDC
+    EPNUM_CDC_NOTIF,
+    EPNUM_CDC_OUT,
+    EPNUM_CDC_IN,
+#endif
 #if CFG_TUD_HID
     EPNUM_HID_DATA,
 #endif
