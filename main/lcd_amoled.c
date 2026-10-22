@@ -13,6 +13,7 @@
 #include "esp_check.h"
 #include "esp_heap_caps.h"
 #include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
 #include "freertos/task.h"
 #include "driver/gpio.h"
 #include "driver/spi_master.h"
@@ -29,6 +30,20 @@ static const char *TAG = "lcd";
 static esp_lcd_panel_io_handle_t s_io;
 static esp_lcd_panel_handle_t s_panel;
 static uint16_t *s_line_buf; /* 一整行像素，DMA 可访问（fill 用） */
+static SemaphoreHandle_t s_draw_done_sem;
+
+/* QSPI 刷屏是排队异步发送的，这个回调在一笔颜色数据传输真正结束后触发。
+ * 没有它的话，draw 返回时 DMA 可能还在读调用者的缓冲区，复用缓冲区就会花屏。 */
+static bool lcd_color_trans_done_cb(esp_lcd_panel_io_handle_t panel_io,
+                                    esp_lcd_panel_io_event_data_t *edata, void *user_ctx)
+{
+    BaseType_t high_task_woken = pdFALSE;
+    (void)panel_io;
+    (void)edata;
+    (void)user_ctx;
+    xSemaphoreGiveFromISR(s_draw_done_sem, &high_task_woken);
+    return high_task_woken == pdTRUE;
+}
 
 /* 面板初始化序列：先 sleep out，再设方向 / 像素格式 / 窗口 / 亮度 */
 static const sh8601_lcd_init_cmd_t vendor_specific_init[] = {
@@ -81,7 +96,10 @@ esp_err_t lcd_amoled_init(void)
     ESP_RETURN_ON_ERROR(spi_bus_initialize(LCD_HOST, &buscfg, SPI_DMA_CH_AUTO), TAG, "spi bus");
 
     ESP_LOGI(TAG, "install panel io");
-    esp_lcd_panel_io_spi_config_t io_config = SH8601_PANEL_IO_QSPI_CONFIG(PIN_NUM_LCD_CS, NULL, NULL);
+    s_draw_done_sem = xSemaphoreCreateBinary();
+    ESP_RETURN_ON_FALSE(s_draw_done_sem != NULL, ESP_ERR_NO_MEM, TAG, "draw done semaphore");
+    esp_lcd_panel_io_spi_config_t io_config = SH8601_PANEL_IO_QSPI_CONFIG(
+            PIN_NUM_LCD_CS, lcd_color_trans_done_cb, NULL);
     ESP_RETURN_ON_ERROR(esp_lcd_new_panel_io_spi(LCD_HOST, &io_config, &s_io), TAG, "panel io");
 
     ESP_LOGI(TAG, "install panel driver");
@@ -139,7 +157,12 @@ esp_err_t lcd_amoled_draw(int x1, int y1, int x2, int y2, const void *rgb565)
     if ((x1 >= x2) || (y1 >= y2))
         return ESP_ERR_INVALID_ARG;
 
-    return esp_lcd_panel_draw_bitmap(s_panel, x1, y1, x2, y2, rgb565);
+    esp_err_t ret = esp_lcd_panel_draw_bitmap(s_panel, x1, y1, x2, y2, rgb565);
+    if (ret == ESP_OK) {
+        /* 等 DMA 真正发完，保证调用者可以立刻复用像素缓冲区 */
+        xSemaphoreTake(s_draw_done_sem, portMAX_DELAY);
+    }
+    return ret;
 }
 
 esp_err_t lcd_amoled_fill(uint16_t rgb565)
@@ -155,6 +178,8 @@ esp_err_t lcd_amoled_fill(uint16_t rgb565)
         esp_err_t err = esp_lcd_panel_draw_bitmap(s_panel, 0, y, DISPLAY_WIDTH, y + 1, s_line_buf);
         if (err != ESP_OK)
             return err;
+        /* 等这一行真正发完，避免下一行覆盖 s_line_buf 时 DMA 还在读 */
+        xSemaphoreTake(s_draw_done_sem, portMAX_DELAY);
     }
 
     return ESP_OK;

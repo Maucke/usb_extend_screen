@@ -106,6 +106,12 @@ idf.py bmgr -b <新板卡名称>
 
 ## 其他问题
 
+### 上电后屏幕显示连接 / 驱动提示
+
+* 上电后如果还没收到 PC 画面，屏幕会显示 `PLEASE CONNECT TO PC`，提示把板子的 USB 口接到电脑。
+* 接上 PC 后屏幕会变为 `USB CONNECTED`。如果一直停留在 `IF THE SCREEN STAYS BLACK, PLEASE CHECK / INSTALL THE USB DISPLAY DRIVER`，说明 USB 已经枚举成功但没有收到画面，请检查 PC 端驱动是否安装、是否在系统显示设置中启用了这块副屏。
+* 收到第一帧正常画面后提示会自动消失，之后不会再显示首屏提示。
+
 ### 触摸屏控制的不是设备端的屏幕
 
 * 在控制面板中选择 `平板电脑设置`
@@ -122,6 +128,7 @@ idf.py bmgr -b <新板卡名称>
 
 * 分辨率以及 RGB565/RGB888 帧缓冲格式直接来自所选板卡的 `display_lcd` 配置，并同时用于生成 USB vendor 字符串、HID 触摸坐标范围、帧校验和 JPEG 输出缓冲区。
 * 更换屏幕时，请选择匹配的板卡定义，或创建/叠加 Board Manager amend，然后重新执行 `idf.py bmgr`。
+* 如果 PC 端送来的画面分辨率与屏幕不一致，设备会丢弃这些帧，并在屏幕上显示 `RESOLUTION ERROR` 提示，同时列出 PC 端输入分辨率和屏幕分辨率。把 PC 显示分辨率调整正确后，提示会被正常画面覆盖。
 
 Note: 目前驱动不支持竖屏的屏幕，请使用硬件上为横屏的屏幕。
 

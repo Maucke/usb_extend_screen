@@ -62,7 +62,7 @@ char inPipe[MAX_LENGTH] = "PIPE00";     // pipe name for bulk input pipe on our 
 char outPipe[MAX_LENGTH] = "PIPE01";    // pipe name for bulk output pipe on our test board
 char completeDeviceName[MAX_LENGTH] = "";  //generated from the GUID registered by the driver itself
 
-BOOL fDumpUsbConfig = FALSE;    // flags set in response to console command line switches
+BOOL fDumpUsbConfig = TRUE;    // flags set in response to console command line switches
 BOOL fDumpReadData = FALSE;
 BOOL fRead = FALSE;
 BOOL fWrite = FALSE;
@@ -694,24 +694,31 @@ uint16_t rgb888_to_565(uint8_t r, uint8_t g, uint8_t b)
 {
     return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3);
 }
-
-
-
-
-int lcd_colorbar(uint32_t    * buffer, int LCD_WIDTH,int LCD_HEIGHT)
+int lcd_colorbar(uint32_t* buffer, int LCD_WIDTH, int LCD_HEIGHT)
 {
-    int fact = LCD_HEIGHT/24;
-	int bcnt=0;
-	int ofs=0;
-    
-        for (int y = 0; y < LCD_HEIGHT; y += fact) {
-			for (int i = 0; i < LCD_WIDTH * fact; i++) {
-            	//buffer[i] = 1<<bcnt;
-            	buffer[ofs++]=0x1<< bcnt;
-       		}
-			bcnt++;            
-        }
+    const int bands = 3;
 
+    for (int bcnt = 0; bcnt < bands; bcnt++) {
+        int y0 = bcnt * LCD_HEIGHT / bands;
+        int y1 = (bcnt + 1) * LCD_HEIGHT / bands;
+        int rows = y1 - y0;                    // 本段行数
+
+        for (int y = y0; y < y1; y++) {
+            // 本段内灰阶：0..255
+            int v = (rows > 1) ? ((y - y0) * 255 / (rows - 1)) : 255;
+
+            uint32_t color;
+            switch (bcnt) {
+            case 0:  color = ((uint32_t)v << 16);                 break; // 红：R=v, G=0, B=0
+            case 1:  color = ((uint32_t)v << 8);                  break; // 绿：R=0, G=v, B=0
+            default: color = (uint32_t)v;                        break; // 蓝：R=0, G=0, B=v
+            }
+
+            for (int x = 0; x < LCD_WIDTH; x++) {
+                buffer[y * LCD_WIDTH + x] = color;
+            }
+        }
+    }
     return 0;
 }
 #include"tiny_jpeg.h"
@@ -763,7 +770,7 @@ Return Value:
 
 --*/
 {
-#define TEST_BUF_SIZE 240*512
+#define TEST_BUF_SIZE 536*240
 #define MSG_SIZE   1024*50
     UINT success;
     int siz, nBytes;
@@ -771,7 +778,7 @@ Return Value:
 	uint8_t msg[MSG_SIZE];
     PUSB_COMMON_DESCRIPTOR    commonDesc      = NULL;
     PUSB_CONFIGURATION_DESCRIPTOR cd;
-    BOOL  displayUnknown;
+    BOOL  displayUnknown; 
 
     siz = sizeof(buf);
 #if 0
@@ -807,9 +814,9 @@ Return Value:
 		break;
         case 2: {
             //
-            lcd_colorbar(buf, 240, 240);
-            siz = enc_jpg_enc(&msg[sizeof(udisp_frame_header_t)], (uint8_t*)buf, 0, 0, 239, 239, 239, MSG_SIZE);
-            disp_setup_frame_header(msg, 0, 0, 239, 239, UDISP_TYPE_JPG, siz);
+            lcd_colorbar(buf, 536, 240);
+            siz = enc_jpg_enc(&msg[sizeof(udisp_frame_header_t)], (uint8_t*)buf, 0, 0, 536-1, 239, 536 - 1, MSG_SIZE - sizeof(udisp_frame_header_t));
+            disp_setup_frame_header(msg, 0, 0, 536 - 1, 239, UDISP_TYPE_JPG, siz);
             siz += sizeof(udisp_frame_header_t);
 
             if (hDEV == INVALID_HANDLE_VALUE) {
@@ -869,6 +876,9 @@ Return Value:
     if (hDEV != INVALID_HANDLE_VALUE)
     {
         rw_dev( hDEV ,2);
+        printf("Press any key to continue...\n");
+        _getch();
+        rw_dev(hDEV, 0);
         CloseHandle(hDEV);
     }
 

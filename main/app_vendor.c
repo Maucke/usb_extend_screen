@@ -8,6 +8,7 @@
 #include "esp_check.h"
 #include "app_usb.h"
 #include "app_lcd.h"
+#include "app_osd.h"
 #include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -54,14 +55,22 @@ void transfer_task(void *pvParameter)
 
     frame_t *usr_frame = NULL;
     while (1) {
-        usr_frame = frame_get_filled();
+        /*
+         * 用超时等待而不是一直阻塞：收到分辨率错误的画面时不会再有
+         * filled frame，靠这个超时把待显示的分辨率提示刷到屏幕上。
+         */
+        usr_frame = frame_get_filled_timeout(100);
         if (!usr_frame) {
-            ESP_LOGW(TAG, "Failed to get a filled frame");
-            vTaskDelay(1);
+            app_osd_process();
             continue;
         }
-        app_lcd_draw(usr_frame->data,  usr_frame->info.total, usr_frame->info.width, usr_frame->info.height);
+        app_osd_process();
+        if (app_lcd_draw(usr_frame->data, usr_frame->info.total,
+                         usr_frame->info.width, usr_frame->info.height) == ESP_OK) {
+            app_osd_on_frame_drawn();
+        }
         frame_return_empty(usr_frame);
+        app_osd_process();
 
         /*
          * When input is faster than JPEG decode + RGB frame copy, the filled
@@ -139,10 +148,16 @@ void tud_vendor_rx_cb(uint8_t itf, uint8_t const* buffer, uint16_t bufsize)
                     skip_frame = start_skip_frame(&skip_frame_info, pblt->payload_total, first_payload_len);
                     break;
                 case UDISP_TYPE_JPG: {
-                    if (pblt->x != 0 || pblt->y != 0 ||
-                            pblt->width != s_screen_width || pblt->height != s_screen_height) {
-                        ESP_LOGW(TAG, "Drop frame with unexpected area: x=%u y=%u w=%u h=%u",
-                                 pblt->x, pblt->y, pblt->width, pblt->height);
+                    if (pblt->x != 0 || pblt->y != 0) {
+                        ESP_LOGW(TAG, "Drop frame with unexpected area: x=%u y=%u", pblt->x, pblt->y);
+                        skip_frame = start_skip_frame(&skip_frame_info, pblt->payload_total, first_payload_len);
+                        break;
+                    }
+                    if (pblt->width != s_screen_width || pblt->height != s_screen_height) {
+                        ESP_LOGW(TAG, "Drop frame with unexpected resolution: %ux%u, panel is %ux%u",
+                                 pblt->width, pblt->height, s_screen_width, s_screen_height);
+                        /* 让绘图任务在屏幕上提示分辨率不正确 */
+                        app_osd_report_resolution(pblt->width, pblt->height);
                         skip_frame = start_skip_frame(&skip_frame_info, pblt->payload_total, first_payload_len);
                         break;
                     }

@@ -88,12 +88,12 @@ exit:
     return ret;
 }
 
-void app_lcd_draw(uint8_t *buf, uint32_t len, uint16_t width, uint16_t height)
+esp_err_t app_lcd_draw(uint8_t *buf, uint32_t len, uint16_t width, uint16_t height)
 {
     if (width != s_lcd_width || height != s_lcd_height) {
         ESP_LOGW(TAG, "Drop JPEG with unexpected size: %ux%u, expected %ux%u",
                  width, height, s_lcd_width, s_lcd_height);
-        return;
+        return ESP_ERR_INVALID_SIZE;
     }
 
     static int fps_count;
@@ -112,13 +112,19 @@ void app_lcd_draw(uint8_t *buf, uint32_t len, uint16_t width, uint16_t height)
                                                 width, height);
     if (jpeg_ret != JPEG_ERR_OK) {
         ESP_LOGD(TAG, "JPEG decode failed: %d", jpeg_ret);
-        return;
+        return (jpeg_ret == JPEG_ERR_INVALID_PARAM) ? ESP_ERR_INVALID_SIZE : ESP_FAIL;
     }
 
     esp_err_t ret = lcd_amoled_draw(0, 0, width, height, s_decode_buffer);
     if (ret != ESP_OK) {
         ESP_LOGD(TAG, "LCD draw failed: %s", esp_err_to_name(ret));
     }
+    return ret;
+}
+
+uint16_t *app_lcd_get_frame_buffer(void)
+{
+    return (uint16_t *)s_decode_buffer;
 }
 
 esp_err_t app_lcd_get_resolution(uint16_t *width, uint16_t *height)

@@ -6,3 +6,5 @@ managed_components/
 dependencies.lock
 .vscode/
 windows_driver/win10_idd_xfz1986_usb_graphic_driver_display/win10_idd_xfz1986_usb_graphic_driver/idd_xfz1986_usb_graphic/x64/
+windows_driver/win10_idd_xfz1986_usb_graphic_driver_display/win10_idd_xfz1986_usb_graphic_driver/exe/.vs/
+windows_driver/win10_idd_xfz1986_usb_graphic_driver_display/win10_idd_xfz1986_usb_graphic_driver/exe/x64/

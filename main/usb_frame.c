@@ -113,3 +113,13 @@ frame_t *frame_get_filled(void)
         return NULL;
     }
 }
+
+frame_t *frame_get_filled_timeout(uint32_t timeout_ms)
+{
+    frame_t *this_fb;
+    if (xQueueReceive(filled_fb_queue, &this_fb, pdMS_TO_TICKS(timeout_ms)) == pdPASS) {
+        return this_fb;
+    } else {
+        return NULL;
+    }
+}

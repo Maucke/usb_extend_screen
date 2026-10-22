@@ -40,6 +40,9 @@ frame_t *frame_get_empty(void);
 
 frame_t *frame_get_filled(void);
 
+/* 与 frame_get_filled() 相同，但最多等待 timeout_ms 毫秒，超时返回 NULL。 */
+frame_t *frame_get_filled_timeout(uint32_t timeout_ms);
+
 #ifdef __cplusplus
 }
 #endif
